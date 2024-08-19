@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redux</title>
+</head>
+<body>
+    <main>
+        <h1>Total: <span id="total"></span></h1>
+        <button type="button" class="btn" >Increase</button>
+    </main>
+    <script type="module">
+        import * as Redux from './js/redux.browser.mjs'
+        /*
+            Store:
+                Redux.createStore().
+                The store gives global access and allow despatch actions that modify the state.
+                It's essential to pass a function as first argument parameter of crateStore, it function is called 'reducer'.
+                The 'reducer' is a function responsible for returns the current store state
+
+                function reducer(){
+                    return{
+                        name:'Pedro',
+                        id:199,
+                    }
+                }
+
+                const state = Redux.createStore(reducer)
+
+            Reducer:
+                The 'reducer' function receives two main arguments, the first one been the current state and the seconde one is an action 
+                that will be utilized to identify the dispatched actions by the store
+
+            Action:
+                To update the state, we send an 'action' through the 'store' using the 'dispatch' method. An action is
+                always an object witch contain the 'type' and a 'payload' value if necessary.
+
+                Withing the 'reducer' we verify the type of the sended action and return the new state from it
+        
+            Action Creator
+                Another common practice to facilitate the use of actions is the creation of functions that return the action's object
+                function increase(){
+                    return {type:INCREASE}
+                }
+
+                function sum(payload){
+                    return {type:SUM, payload}
+                }
+            Subscribe:
+                Represents a function that is executed every time a change happens in the state 
+                const unsubscribeRender = store.subscribe(()=>{
+                    //--Anything goes here
+                })  
+
+            Switch:
+                It's common to use 'switch statement' within the 'reducer' instead of 'if/else'. It helps to facilitate readability and avoid
+                repetition of 'action.type'
+
+                function reducer(state={}, action){
+                    switch(action.type){
+                        case INCREASE:
+                            return {...state, qtd:state?.qtd + 1}
+
+                        case DECREASE:
+                            return {...state, qtd:state?.qtd - 1}
+                        default:
+                            return state;
+                    }
+                }
+
+            combineReducers:
+                We can divide the 'reducer' code into different functions and combine them at the end.
+                It's worth remembering that, in the end, the reducer will always be unique, and all dispatched actions will pass through all reducers
+                
+                Redux.combineReducers({reducer, reducer_modal})
+        */
+
+        //---Const--------------------------
+        const INCREASE = "increase";
+        const SUM = "sum";
+        const OPEN_MODAL = 'open'
+        const CLOSE_MODAL = 'close'
+        //---Action Creator-----------------
+        function increase(){
+            return {type:INCREASE}
+        }
+
+        function sum(payload){
+            return {type:SUM, payload}
+        }
+
+        const initial_state = {
+            qtd:1,
+            name:'Pedro',
+            id:199,
+        };
+        const reducer = (state =initial_state, action)=>{
+            let {type, payload} = action
+            switch(type){
+                case INCREASE:
+                    return {...state, qtd:state?.qtd + 1}
+                case SUM:
+                    return {...state, qtd: state?.qtd + payload}
+                default:
+                    return state;    
+            }
+
+            /* if(type == INCREASE) return {...state, qtd:state?.qtd + 1}
+
+            if(type == SUM){
+                return {...state, qtd: state?.qtd + payload}
+            }
+            return state; */
+        }
+
+        const reducer_modal = (state={}, action)=>{
+            let {type} = action;
+            switch(type){
+                case OPEN_MODAL:
+                    return true;
+                case CLOSE_MODAL:
+                    return false;
+                default:
+                    return state;
+            }
+        }
+
+        /* const store = Redux.createStore(reducer, {
+                qtd:1,
+                name:'Pedro',
+                id:199,
+            }) */
+
+        const combined_reducer = Redux.combineReducers({reducer, reducer_modal})
+
+        const store = Redux.createStore(combined_reducer, {
+                qtd:1,
+                name:'Pedro',
+                id:199,
+            })
+        function render(){
+            const totalSpan = document.querySelector('#total')
+            totalSpan.innerText = store.getState()?.reducer?.qtd
+        }
+        
+
+        let state = store.getState()
+        console.log(store)
+        console.log(state)
+        
+        //--Send a object with 'type' and 'payload' keys
+        store.dispatch(sum(25))
+        store.dispatch(increase())
+
+        
+        //---- Subscribe --------------------
+
+        const unsubscribeRender = store.subscribe(()=>{
+            render()
+        })
+
+        //---Unsubscribe
+        //unsubscribeRender();
+
+        const unsubscribeHappens = store.subscribe(()=>{
+            console.log('It happens')
+        })
+        //---Unsubscribe
+        //unsubscribeHappens();
+        
+        state = store.getState()
+
+        console.log(store)
+        console.log(state)
+        render()
+        const button = document.querySelector('.btn')
+        button.addEventListener('click', ()=>{store.dispatch(increase()); console.log(store.getState())})
+    </script>  
+</body>
+</html>
