@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redux</title>
+    <script src="./js/immer.umd.production.min.js" ></script>
+</head>
+<body>
+    <main>
+        <h1>Total: <span id="total"></span></h1>
+        <button type="button" class="btn" >Increase</button>
+        <button type="button" class="btn-open-result" >Toggle result</button>
+        <p>
+            <div id="box" style="background:blue; height:50px; width:10px;color:#FFF" >Ok</div>
+        </p>
+    </main>
+    <script type="module">
+        import * as Redux from './js/redux.browser.mjs'
+        /*
+            Store:
+                Redux.createStore().
+                The store gives global access and allow despatch actions that modify the state.
+                It's essential to pass a function as first argument parameter of crateStore, it function is called 'reducer'.
+                The 'reducer' is a function responsible for returns the current store state
+
+                function reducer(){
+                    return{
+                        name:'Pedro',
+                        id:199,
+                    }
+                }
+
+                const state = Redux.createStore(reducer)
+
+            Reducer:
+                The 'reducer' function receives two main arguments, the first one been the current state and the seconde one is an action 
+                that will be utilized to identify the dispatched actions by the store
+
+            Action:
+                To update the state, we send an 'action' through the 'store' using the 'dispatch' method. An action is
+                always an object witch contain the 'type' and a 'payload' value if necessary.
+
+                Withing the 'reducer' we verify the type of the sended action and return the new state from it
+        
+            Action Creator
+                Another common practice to facilitate the use of actions is the creation of functions that return the action's object
+                function increase(){
+                    return {type:INCREASE}
+                }
+
+                function sum(payload){
+                    return {type:SUM, payload}
+                }
+            Subscribe:
+                Represents a function that is executed every time a change happens in the state 
+                const unsubscribeRender = store.subscribe(()=>{
+                    //--Anything goes here
+                })  
+
+            Switch:
+                It's common to use 'switch statement' within the 'reducer' instead of 'if/else'. It helps to facilitate readability and avoid
+                repetition of 'action.type'
+
+                function reducer(state={}, action){
+                    switch(action.type){
+                        case INCREASE:
+                            return {...state, qtd:state?.qtd + 1}
+
+                        case DECREASE:
+                            return {...state, qtd:state?.qtd - 1}
+                        default:
+                            return state;
+                    }
+                }
+
+            combineReducers:
+                We can divide the 'reducer' code into different functions and combine them at the end.
+                It's worth remembering that, in the end, the reducer will always be unique, and all dispatched actions will pass through all reducers
+                
+                Redux.combineReducers({reducer, reducer_modal})
+
+            Pure Function:
+                Pure functions always return the same value given the same argument and produce no side effects.
+                Returning the same value means that the function internal calcs cannot depend on random numbers, time, date and others data that
+                can change in the future
+
+            Immutability:
+                The 'reducer' function should always returns a new state, when it's get modified. Never change it directly (it should be immutable).
+                
+                const CHANGE_NAME = 'CHANGE_NAME';
+
+                const initialState = {name:'pedro', age:29}
+                const reducer = (state=initialState, action)=>{
+                    let {type, payload} = action;
+                    witch(type){
+                        case CHANGE_NAME:
+                            return {...state, name:payload}
+                        default:
+                            return state;
+                    }
+                }
+            Immer:
+                Immer is a package witch provides a function witch we can use all methods that change arrays and objects,
+                without concern us with immutability. Because the immer responsibility will always be produce a new object/array
+                cons obj01 = {name:'pedro', age:29}
+                const obj02 = immer.producer(obj01, (draft)=>{
+                    draft.age = 30;
+                })
+
+                console.log(obj01 == obj02)
+
+                const reducer = immer.produce((state, action)=>{
+                    let {type, payload} = action;
+                    witch(type){
+                        case CHANGE_NAME:
+                            return {...state, name:payload}
+                        default:
+                            return state;
+                    }
+                }, initialState)
+        */
+
+        //---Const--------------------------
+        const INCREASE = "increase";
+        const SUM = "sum";
+        const OPEN_MODAL = 'open'
+        const CLOSE_MODAL = 'close'
+        //---Action Creator-----------------
+        function increase(){
+            return {type:INCREASE}
+        }
+
+        function sum(payload){
+            return {type:SUM, payload}
+        }
+
+        function openModal(){
+            return {type:OPEN_MODAL}
+        }
+
+        function closeModal(){
+            return {type:CLOSE_MODAL}
+        }
+
+        const initial_state = {
+            qtd:1,
+            name:'Pedro',
+            id:199,
+        };
+
+        const initial_state_modal = {
+            is_open:true
+        };
+
+        const reducer = (state =initial_state, action)=>{
+            let {type, payload} = action
+            switch(type){
+                case INCREASE:
+                    return {...state, qtd:state?.qtd + 1}
+                case SUM:
+                    return {...state, qtd: state?.qtd + payload}
+                default:
+                    return state;    
+            }
+
+            /* if(type == INCREASE) return {...state, qtd:state?.qtd + 1}
+
+            if(type == SUM){
+                return {...state, qtd: state?.qtd + payload}
+            }
+            return state; */
+        }
+
+        const reducer_modal = (state={is_open:true}, action)=>{
+            let {type} = action;
+            switch(type){
+                case OPEN_MODAL:
+                    return {...state, is_open:true};
+                case CLOSE_MODAL:
+                    return {...state, is_open:false};
+                default:
+                    return state;
+            }
+        }
+
+        const MODIFY_WIDTH = 'MODIFY_WIDTH';
+        function reducer_box_width(state={qtd:0}, action){
+            let {type, payload} = action;
+            switch(type){
+                case MODIFY_WIDTH:
+                    return {...state, qtd:payload}
+                default:
+                    return state; 
+            }
+        }
+
+        function changeBoxWidth(payload){
+            return {type:MODIFY_WIDTH, payload}
+        }
+
+
+        /* const store = Redux.createStore(reducer, {
+                qtd:1,
+                name:'Pedro',
+                id:199,
+            }) */
+
+        const combined_reducer = Redux.combineReducers({reducer, reducer_modal, reducer_box_width})
+
+        const store = Redux.createStore(combined_reducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
+        function render(){
+            const totalSpan = document.querySelector('#total')
+            totalSpan.innerText = store.getState()?.reducer?.qtd
+        }
+
+        function toggleAction(){
+            let {reducer, reducer_modal} = store.getState();
+            let {is_open} = reducer_modal
+            const totalSpan = document.querySelector('#total')
+
+            if(is_open == true){
+                totalSpan.style.display = 'inline-block'
+            }else{
+                totalSpan.style.display = 'none'
+            }
+        }
+        
+
+        let state = store.getState()
+        console.log(store)
+        console.log(state)
+        
+        //--Send a object with 'type' and 'payload' keys
+        store.dispatch(sum(25))
+        store.dispatch(increase())
+
+        
+        //---- Subscribe --------------------
+
+        const unsubscribeRender = store.subscribe(()=>{
+            render()
+        })
+
+        //---Unsubscribe
+        //unsubscribeRender();
+
+        const unsubscribeHappens = store.subscribe(()=>{
+            console.log('It happens')
+        })
+
+    
+        store.subscribe(()=>{
+            toggleAction()
+
+        })
+
+        const toggleFunc = ()=>{
+
+            if(store.getState()?.reducer_modal?.is_open == true){
+                    
+                return closeModal()
+            }else{
+                
+                return openModal()
+            }
+        }
+
+        function render_box_width(){
+            let {reducer_box_width} = store.getState(); 
+            const box = document.querySelector('#box')
+            box.style.width = reducer_box_width?.qtd+'px'
+        }
+
+        store.subscribe(()=>{
+            render_box_width()
+        })
+
+
+        store.dispatch(changeBoxWidth(100))
+        store.dispatch(changeBoxWidth(200))
+        store.dispatch(changeBoxWidth(300))
+        //---Unsubscribe
+        //unsubscribeHappens();
+        
+        state = store.getState()
+
+        console.log(store)
+        console.log(state)
+        render()
+        const button = document.querySelector('.btn')
+        button.addEventListener('click', ()=>{store.dispatch(increase()); console.log(store.getState())})
+        const btnToggle = document.querySelector('.btn-open-result')
+        btnToggle.addEventListener('click', ()=>{store.dispatch(toggleFunc());})
+
+        
+
+        /* const MODIFY_WIDTH = 'MODIFY_WIDTH';
+        function reducer_box_width(state={qtd:0}, action){
+            let {type, payload} = action;
+            switch(type){
+                case MODIFY_WIDTH:
+                    return {...state, qtd:payload}
+                default:
+                    return state; 
+            }
+        }
+
+        function changeBoxWidth(payload){
+            return {type:MODIFY_WIDTH, payload}
+        }
+
+        const store02 = Redux.createStore(reducer_box_width,
+            window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+        )
+
+        function render_box_width(){
+
+            const box = document.querySelector('#box')
+            box.style.width = store02.getState()?.qtd+'px'
+        }
+        
+        store02.subscribe(()=>{
+            render_box_width()
+        })
+        
+        store02.dispatch(changeBoxWidth(100))
+        console.log('state02: ', store02)
+
+        
+
+        render_box_width(); */
+        
+        /*
+            echo "# redux_studies" >> README.md
+            git init
+            git add README.md
+            git commit -m "first commit"
+            git branch -M main
+            git remote add origin https://github.com/pedro162/redux_studies.git
+            git push -u origin main
+        */
+    </script>  
+</body>
+</html>

@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redux</title>
+    <script src="./js/immer.umd.production.min.js" ></script>
 </head>
 <body>
     <main>
         <h1>Total: <span id="total"></span></h1>
         <button type="button" class="btn" >Increase</button>
+        <button type="button" class="btn-open-result" >Toggle result</button>
+        <p>
+            <div id="box" style="background:blue; height:50px; width:10px;color:#FFF" >Ok</div>
+        </p>
     </main>
     <script type="module">
         import * as Redux from './js/redux.browser.mjs'
@@ -74,108 +79,74 @@
                 It's worth remembering that, in the end, the reducer will always be unique, and all dispatched actions will pass through all reducers
                 
                 Redux.combineReducers({reducer, reducer_modal})
+
+            Pure Function:
+                Pure functions always return the same value given the same argument and produce no side effects.
+                Returning the same value means that the function internal calcs cannot depend on random numbers, time, date and others data that
+                can change in the future
+
+            Immutability:
+                The 'reducer' function should always returns a new state, when it's get modified. Never change it directly (it should be immutable).
+                
+                const CHANGE_NAME = 'CHANGE_NAME';
+
+                const initialState = {name:'pedro', age:29}
+                const reducer = (state=initialState, action)=>{
+                    let {type, payload} = action;
+                    witch(type){
+                        case CHANGE_NAME:
+                            return {...state, name:payload}
+                        default:
+                            return state;
+                    }
+                }
+            Immer:
+                Immer is a package witch provides a function witch we can use all methods that change arrays and objects,
+                without concern us with immutability. Because the immer responsibility will always be produce a new object/array
+                cons obj01 = {name:'pedro', age:29}
+                const obj02 = immer.producer(obj01, (draft)=>{
+                    draft.age = 30;
+                })
+
+                console.log(obj01 == obj02)
+
+                const reducer = immer.produce((state, action)=>{
+                    let {type, payload} = action;
+                    witch(type){
+                        case CHANGE_NAME:
+                            return {...state, name:payload}
+                        default:
+                            return state;
+                    }
+                }, initialState)
+
+            Redux Toolkit:
+                The Redux team identified that a lot of the code written to set up Redux is often repetitive.
+                To address this, they created another package (which they recommend using) that simplifies common tasks,
+                such as creating constants, action creators, configuring devtools, and integrating libraries like Immer and Redux-Thunk. 
+                
+                npm install @reduxjs/toolkit
+
+                configureStore:
+                    The configureStore automatically configure middlewares such as redux-thunk and devtools
+
+                import {configureStore} from '@reduxjs/toolkit'
+                const reducer = {
+
+                }
+                const store = configureStore({reducer:reducer})
         */
 
-        //---Const--------------------------
-        const INCREASE = "increase";
-        const SUM = "sum";
-        const OPEN_MODAL = 'open'
-        const CLOSE_MODAL = 'close'
-        //---Action Creator-----------------
-        function increase(){
-            return {type:INCREASE}
-        }
-
-        function sum(payload){
-            return {type:SUM, payload}
-        }
-
-        const initial_state = {
-            qtd:1,
-            name:'Pedro',
-            id:199,
-        };
-        const reducer = (state =initial_state, action)=>{
-            let {type, payload} = action
-            switch(type){
-                case INCREASE:
-                    return {...state, qtd:state?.qtd + 1}
-                case SUM:
-                    return {...state, qtd: state?.qtd + payload}
-                default:
-                    return state;    
-            }
-
-            /* if(type == INCREASE) return {...state, qtd:state?.qtd + 1}
-
-            if(type == SUM){
-                return {...state, qtd: state?.qtd + payload}
-            }
-            return state; */
-        }
-
-        const reducer_modal = (state={}, action)=>{
-            let {type} = action;
-            switch(type){
-                case OPEN_MODAL:
-                    return true;
-                case CLOSE_MODAL:
-                    return false;
-                default:
-                    return state;
-            }
-        }
-
-        /* const store = Redux.createStore(reducer, {
-                qtd:1,
-                name:'Pedro',
-                id:199,
-            }) */
-
-        const combined_reducer = Redux.combineReducers({reducer, reducer_modal})
-
-        const store = Redux.createStore(combined_reducer, {
-                qtd:1,
-                name:'Pedro',
-                id:199,
-            })
-        function render(){
-            const totalSpan = document.querySelector('#total')
-            totalSpan.innerText = store.getState()?.reducer?.qtd
-        }
-        
-
-        let state = store.getState()
-        console.log(store)
-        console.log(state)
-        
-        //--Send a object with 'type' and 'payload' keys
-        store.dispatch(sum(25))
-        store.dispatch(increase())
-
-        
-        //---- Subscribe --------------------
-
-        const unsubscribeRender = store.subscribe(()=>{
-            render()
+        import store from './store/configureStore.js'
+        import {increase_action} from './store/counter.js'
+        store.subscribe(()=>{
+            console.log('It works')
         })
 
-        //---Unsubscribe
-        //unsubscribeRender();
+        store.dispatch(increase_action())
 
-        const unsubscribeHappens = store.subscribe(()=>{
-            console.log('It happens')
-        })
-        //---Unsubscribe
-        //unsubscribeHappens();
-        
-        state = store.getState()
-
-        console.log(store)
-        console.log(state)
-        render()
-        const button = document.querySelector('.btn')
-        button.addEventListener('click', ()=>{store.dispatch(increase()); console.log(store.getState())})
+        //---Last class--
+        //Tech challenger://https://www.origamid.com/curso/redux-com-react/0208-desafio
 
         /*
             echo "# redux_studies" >> README.md
